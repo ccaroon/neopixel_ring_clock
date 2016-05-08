@@ -12,9 +12,11 @@ Analog analogClock(strip);
 
 void setup() {
     Serial.begin(9600);
-    analogClock.setTime(__TIME__);
+    analogClock.setTime("11:50:45");
 }
 
 void loop() {
     analogClock.tick();
+    Serial.println(analogClock.getState());
+    delay(1000);
 }

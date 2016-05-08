@@ -15,12 +15,13 @@ public:
     void advanceMinutes();
     void advanceHours();
 
+    char* getState();
 private:
     Adafruit_NeoPixel strip;
 
     uint8_t ledCount;
 
-    uint32_t color_mh;
+    uint32_t color_hm;
     uint32_t color_s;
     uint32_t color_m;
     uint32_t color_h;
@@ -34,7 +35,6 @@ private:
     unsigned long lastMinUpdate;
     unsigned long lastSecUpdate;
     uint32_t resetSecColor;
-    uint32_t resetMinColor;
 
     void initHours();
     void initMinutes();

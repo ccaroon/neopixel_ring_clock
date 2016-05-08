@@ -5,7 +5,7 @@ Analog::Analog(Adafruit_NeoPixel& neoPixelStrip) {
 
     strip.begin();
 
-    color_mh = strip.Color(16,16,16);
+    color_hm = strip.Color(16,16,16);
     color_s  = strip.Color(0,16,16);
     color_m  = strip.Color(16,0,16);
     color_h  = strip.Color(0,16,0);
@@ -15,35 +15,38 @@ Analog::Analog(Adafruit_NeoPixel& neoPixelStrip) {
 
 void Analog::setTime(const char* timeStr) {
     sscanf(timeStr, "%02d:%02d:%02d\n", &hour, &min, &sec);
-    Serial.println(timeStr);
 
-    initHours();
-    initMinutes();
+    // Order matters
     initSeconds();
+    initMinutes();
+    initHours();
 
     strip.show();
 
     lastMinUpdate  = lastSecUpdate  = millis();
 }
+
 void Analog::initHours() {
     if (hour >= 12) {
         hour -= 12;
     }
     hourPos = hourPositions[hour];
-    Serial.println(hourPos);
-    strip.setPixelColor(hourPos, color_h);
+
+    uint32_t currColor = strip.getPixelColor(hourPos);
+    if (currColor == color_m) {
+        strip.setPixelColor(hourPos, color_hm);
+    } else {
+        strip.setPixelColor(hourPos, color_h);
+    }
 }
 
 void Analog::initMinutes() {
     minPos =  ledCount - (min/3.75);
-    Serial.println(minPos);
-    resetMinColor = strip.getPixelColor(minPos);
     strip.setPixelColor(minPos, color_m);
 }
 
 void Analog::initSeconds() {
     secPos =  ledCount - ((sec*1000)/3750);
-    Serial.println(secPos);
     resetSecColor = strip.getPixelColor(secPos);
     strip.setPixelColor(secPos, color_s);
 }
@@ -80,13 +83,17 @@ void Analog::advanceMinutes() {
             minPos = strip.numPixels() - 1;
         }
 
-        strip.setPixelColor(oldPos, resetMinColor);
-
-        resetMinColor = strip.getPixelColor(minPos);
-        if (resetMinColor == color_h) {
-            strip.setPixelColor(minPos, color_mh);
+        uint32_t oldColor = strip.getPixelColor(oldPos);
+        if (oldColor == color_hm) {
+            strip.setPixelColor(oldPos, color_h);
         } else {
-            resetMinColor = 0; //black
+            strip.setPixelColor(oldPos, 0);
+        }
+
+        uint32_t newColor = strip.getPixelColor(minPos);
+        if (newColor == color_h) {
+            strip.setPixelColor(minPos, color_hm);
+        } else {
             strip.setPixelColor(minPos, color_m);
         }
 
@@ -101,20 +108,28 @@ void Analog::advanceMinutes() {
 }
 
 void Analog::advanceHours() {
+    int oldPos = hourPos;
+
     hour++;
     if (hour >= 12) {
         hour = 0;
     }
 
-    uint32_t curColor = strip.getPixelColor(hourPos);
-    if (curColor == color_mh) {
-        strip.setPixelColor(hourPos, color_m);
+    // What color should old hourPos be set to?
+    uint32_t oldColor = strip.getPixelColor(oldPos);
+    if (oldColor == color_hm) {
+        strip.setPixelColor(oldPos, color_m);
     } else {
-        strip.setPixelColor(hourPos, 0);
+        strip.setPixelColor(oldPos, 0);
     }
 
     hourPos = hourPositions[hour];
-    strip.setPixelColor(hourPos, color_h);
+    uint32_t newColor = strip.getPixelColor(hourPos);
+    if (newColor == color_m) {
+       strip.setPixelColor(hourPos, color_hm);
+   } else {
+       strip.setPixelColor(hourPos, color_h);
+   }
 
     strip.show();
 }
@@ -122,4 +137,12 @@ void Analog::advanceHours() {
 void Analog::tick() {
     advanceSeconds();
     advanceMinutes();
+}
+
+char* Analog::getState() {
+    char stateStr[256];
+
+    sprintf(stateStr, "h[%d] m[%d] s[%d]", hourPos, minPos, secPos);
+
+    return stateStr;
 }
