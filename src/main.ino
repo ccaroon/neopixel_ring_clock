@@ -7,10 +7,13 @@
 #define LED_COUNT 16
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, NEOPIN, NEO_GRB + NEO_KHZ800);
 
-uint32_t black   = strip.Color(0,0,0);
-uint32_t color_s = strip.Color(0,16,16);
-uint32_t color_m = strip.Color(64,0,64);
-uint32_t color_h = strip.Color(0,64,0);
+#define SEC_SPEED 3750
+#define MIN_SPEED 225000
+
+uint32_t color_mh = strip.Color(16,16,16);
+uint32_t color_s  = strip.Color(0,16,16);
+uint32_t color_m  = strip.Color(16,0,16);
+uint32_t color_h  = strip.Color(0,16,0);
                          // {12   1   2   3   4  5  6  7  8  9  10 11}
 uint8_t hourPositions[12] = { 0, 15, 13, 12, 11, 9, 8, 7, 5, 4,  3, 1};
 
@@ -21,13 +24,15 @@ int secPos;
 unsigned long lastMinUpdate;
 unsigned long lastSecUpdate;
 uint32_t resetSecColor;
+uint32_t resetMinColor;
+// uint32_t resetHourColor;
 
-void initTime() {
-    sscanf(__TIME__, "%02d:%02d:%02d\n", &hour, &min, &sec);
-    Serial.println(__TIME__);
+void initTime(const char* timeStr) {
+    sscanf(timeStr, "%02d:%02d:%02d\n", &hour, &min, &sec);
+    Serial.println(timeStr);
 
-    // initHours();
-    // initMinutes();
+    initHours();
+    initMinutes();
     initSeconds();
 
     strip.show();
@@ -40,12 +45,14 @@ void initHours() {
     }
     hourPos = hourPositions[hour];
     Serial.println(hourPos);
+    // resetHourColor = strip.getPixelColor(hourPos);
     strip.setPixelColor(hourPos, color_h);
 }
 
 void initMinutes() {
     minPos =  LED_COUNT - (min/3.75);
     Serial.println(minPos);
+    resetMinColor = strip.getPixelColor(minPos);
     strip.setPixelColor(minPos, color_m);
 }
 
@@ -53,7 +60,6 @@ void initSeconds() {
     secPos =  LED_COUNT - ((sec*1000)/3750);
     Serial.println(secPos);
     resetSecColor = strip.getPixelColor(secPos);
-    Serial.println(resetSecColor);
     strip.setPixelColor(secPos, color_s);
 }
 
@@ -61,50 +67,53 @@ void setup() {
     strip.begin();
     Serial.begin(9600);
 
-    initTime();
+    // initTime(__TIME__);
+    initTime("16:56:59");
 }
 
 // Seconds "hand" moves every 3,750ms
 void advanceSeconds() {
-    if (millis() - lastSecUpdate >= 3750) {
-        if (secPos == strip.numPixels() - 1) {
-            strip.setPixelColor(0, resetSecColor);
-        } else {
-            strip.setPixelColor(secPos+1, resetSecColor);
-        }
-
-        resetSecColor = strip.getPixelColor(secPos);
-        if (!resetSecColor) {
-            strip.setPixelColor(secPos, color_s);
-        }
-        strip.show();
+    if (millis() - lastSecUpdate >= SEC_SPEED) {
+        int oldPos = secPos;
 
         secPos--;
         if (secPos < 0) {
             secPos = strip.numPixels() - 1;
         }
 
+        strip.setPixelColor(oldPos, resetSecColor);
+
+        resetSecColor = strip.getPixelColor(secPos);
+        if (resetSecColor == 0) {
+            strip.setPixelColor(secPos, color_s);
+        }
+        strip.show();
+
         lastSecUpdate = millis();
     }
 }
 
-// Minute "hand" moves every 3.75 minutes =
-// 3.75 * 60 = 225s = 225,000ms
+// Minute "hand" moves every 3.75 minutes = 3.75 * 60 = 225s = 225,000ms
 void advanceMinutes() {
-    if (millis() - lastMinUpdate >= 225000) {
-        if (minPos == strip.numPixels() - 1) {
-            strip.setPixelColor(0, black);
-        } else {
-            strip.setPixelColor(minPos + 1, black);
-        }
+    if (millis() - lastMinUpdate >= MIN_SPEED) {
+        int oldPos = minPos;
 
-        strip.setPixelColor(minPos--, color_m);
-        strip.show();
-
+        minPos--;
         if (minPos < 0) {
-            advanceHours();
             minPos = strip.numPixels() - 1;
         }
+
+        strip.setPixelColor(oldPos, resetMinColor);
+
+        resetMinColor = strip.getPixelColor(minPos);
+        if (resetMinColor == color_h) {
+            strip.setPixelColor(minPos, color_mh);
+        } else {
+            resetMinColor = 0; //black
+            strip.setPixelColor(minPos, color_m);
+        }
+
+        strip.show();
 
         lastMinUpdate = millis();
     }
@@ -115,15 +124,13 @@ void advanceHours() {
     if (hour >= 12) {
         hour = 0;
     }
-
-    strip.setPixelColor(hourPos, black);
-
     hourPos = hourPositions[hour];
     strip.setPixelColor(hourPos, color_h);
+
     strip.show();
 }
 
 void loop() {
     advanceSeconds();
-    // advanceMinutes();
+    advanceMinutes();
 }
