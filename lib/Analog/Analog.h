@@ -34,7 +34,6 @@ private:
     int secPos;
     unsigned long lastMinUpdate;
     unsigned long lastSecUpdate;
-    uint32_t resetSecColor;
 
     void initHours();
     void initMinutes();

@@ -47,7 +47,6 @@ void Analog::initMinutes() {
 
 void Analog::initSeconds() {
     secPos =  ledCount - ((sec*1000)/3750);
-    resetSecColor = strip.getPixelColor(secPos);
     strip.setPixelColor(secPos, color_s);
 }
 
@@ -61,10 +60,13 @@ void Analog::advanceSeconds() {
             secPos = strip.numPixels() - 1;
         }
 
-        strip.setPixelColor(oldPos, resetSecColor);
+        uint32_t oldColor = strip.getPixelColor(oldPos);
+        if (oldColor == color_s) {
+            strip.setPixelColor(oldPos, 0);
+        }
 
-        resetSecColor = strip.getPixelColor(secPos);
-        if (resetSecColor == 0) {
+        uint32_t newColor = strip.getPixelColor(secPos);
+        if (newColor == 0) {
             strip.setPixelColor(secPos, color_s);
         }
         strip.show();
