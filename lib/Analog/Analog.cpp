@@ -90,7 +90,11 @@ void Analog::advanceMinutes() {
             strip.setPixelColor(minPos, color_m);
         }
 
-        strip.show();
+        if (minPos == 0) {
+            advanceHours();
+        } else {
+            strip.show();
+        }
 
         lastMinUpdate = millis();
     }
@@ -101,8 +105,21 @@ void Analog::advanceHours() {
     if (hour >= 12) {
         hour = 0;
     }
+
+    uint32_t curColor = strip.getPixelColor(hourPos);
+    if (curColor == color_mh) {
+        strip.setPixelColor(hourPos, color_m);
+    } else {
+        strip.setPixelColor(hourPos, 0);
+    }
+
     hourPos = hourPositions[hour];
     strip.setPixelColor(hourPos, color_h);
 
     strip.show();
+}
+
+void Analog::tick() {
+    advanceSeconds();
+    advanceMinutes();
 }

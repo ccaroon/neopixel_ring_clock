@@ -10,6 +10,7 @@ public:
 
     void setTime(const char* timeStr);
 
+    void tick();
     void advanceSeconds();
     void advanceMinutes();
     void advanceHours();
