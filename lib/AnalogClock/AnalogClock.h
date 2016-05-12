@@ -4,9 +4,9 @@
 #define SEC_SPEED 3750
 #define MIN_SPEED 225000
 
-class Analog {
+class AnalogClock {
 public:
-    Analog(Adafruit_NeoPixel&);
+    AnalogClock(Adafruit_NeoPixel&);
 
     void setTime(const char* timeStr);
 

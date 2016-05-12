@@ -3,12 +3,12 @@
   #include <avr/power.h>
 #endif
 
-#include "Analog.h"
+#include "AnalogClock.h"
 
 #define NEOPIN 6
 #define LED_COUNT 16
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(LED_COUNT, NEOPIN, NEO_GRB + NEO_KHZ800);
-Analog analogClock(strip);
+AnalogClock analogClock(strip);
 
 void setup() {
     Serial.begin(9600);

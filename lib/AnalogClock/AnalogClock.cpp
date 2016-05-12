@@ -1,6 +1,6 @@
-#include "Analog.h"
+#include "AnalogClock.h"
 
-Analog::Analog(Adafruit_NeoPixel& neoPixelStrip) {
+AnalogClock::AnalogClock(Adafruit_NeoPixel& neoPixelStrip) {
     strip = neoPixelStrip;
 
     strip.begin();
@@ -13,7 +13,7 @@ Analog::Analog(Adafruit_NeoPixel& neoPixelStrip) {
     ledCount = strip.numPixels();
 }
 
-void Analog::setTime(const char* timeStr) {
+void AnalogClock::setTime(const char* timeStr) {
     sscanf(timeStr, "%02d:%02d:%02d\n", &hour, &min, &sec);
 
     // Order matters
@@ -26,7 +26,7 @@ void Analog::setTime(const char* timeStr) {
     lastMinUpdate  = lastSecUpdate  = millis();
 }
 
-void Analog::initHours() {
+void AnalogClock::initHours() {
     if (hour >= 12) {
         hour -= 12;
     }
@@ -40,18 +40,18 @@ void Analog::initHours() {
     }
 }
 
-void Analog::initMinutes() {
+void AnalogClock::initMinutes() {
     minPos =  ledCount - (min/3.75);
     strip.setPixelColor(minPos, color_m);
 }
 
-void Analog::initSeconds() {
+void AnalogClock::initSeconds() {
     secPos =  ledCount - ((sec*1000)/3750);
     strip.setPixelColor(secPos, color_s);
 }
 
 // Seconds "hand" moves every 3,750ms
-void Analog::advanceSeconds() {
+void AnalogClock::advanceSeconds() {
     if (millis() - lastSecUpdate >= SEC_SPEED) {
         int oldPos = secPos;
 
@@ -76,7 +76,7 @@ void Analog::advanceSeconds() {
 }
 
 // Minute "hand" moves every 3.75 minutes = 3.75 * 60 = 225s = 225,000ms
-void Analog::advanceMinutes() {
+void AnalogClock::advanceMinutes() {
     if (millis() - lastMinUpdate >= MIN_SPEED) {
         int oldPos = minPos;
 
@@ -109,7 +109,7 @@ void Analog::advanceMinutes() {
     }
 }
 
-void Analog::advanceHours() {
+void AnalogClock::advanceHours() {
     int oldPos = hourPos;
 
     hour++;
@@ -136,12 +136,12 @@ void Analog::advanceHours() {
     strip.show();
 }
 
-void Analog::tick() {
+void AnalogClock::tick() {
     advanceSeconds();
     advanceMinutes();
 }
 
-char* Analog::getState() {
+char* AnalogClock::getState() {
     char stateStr[256];
 
     sprintf(stateStr, "h[%d] m[%d] s[%d]", hourPos, minPos, secPos);
