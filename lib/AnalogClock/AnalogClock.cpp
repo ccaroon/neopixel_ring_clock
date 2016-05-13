@@ -13,7 +13,7 @@ AnalogClock::AnalogClock(Adafruit_NeoPixel& neoPixelStrip) {
     ledCount = strip.numPixels();
 }
 
-void AnalogClock::setTime(const char* timeStr) {
+void AnalogClock::initTime(const char* timeStr) {
     sscanf(timeStr, "%02d:%02d:%02d\n", &hour, &min, &sec);
 
     // Order matters

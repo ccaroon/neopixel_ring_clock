@@ -8,7 +8,7 @@ class AnalogClock {
 public:
     AnalogClock(Adafruit_NeoPixel&);
 
-    void setTime(const char* timeStr);
+    void initTime(const char* timeStr);
 
     void tick();
     void advanceSeconds();
