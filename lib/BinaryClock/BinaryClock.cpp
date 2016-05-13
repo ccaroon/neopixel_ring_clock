@@ -6,9 +6,9 @@ BinaryClock::BinaryClock(Adafruit_NeoPixel& neoPixelStrip) {
 
     strip.begin();
 
-    color_h  = strip.Color(16,0,0);
-    color_m  = strip.Color(0,16,0);
-    color_s  = strip.Color(0,0,16);
+    color_h  = strip.Color(55,5,15);
+    color_m  = strip.Color(31,52,0);
+    color_s  = strip.Color(0,0,64);
 }
 
 void BinaryClock::initTime(const char* timeStr) {
